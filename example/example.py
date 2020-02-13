@@ -12,7 +12,7 @@ from pyreclass import getWTClass
 fname = "/home/bhupendra/projects/screim/data/testdata/CPOL_20161210_0730_GRIDS_2500m.nc"
 
 with netCDF4.Dataset(fname, "r") as ncid:
-    data2d = np.squeeze(ncid["corrected_reflectivity"][0, 6, :, :]) #data*
+    data2d = np.squeeze(ncid["corrected_reflectivity"][0, 6, :, :])  # data*
     data2d = data2d.filled(0)
     data2d[data2d < 0] = 0
 
