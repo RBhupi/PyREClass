@@ -18,7 +18,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 setup(
     name="pyreclass",  # Required
     version="0.9.9",  # Required
-    description="A dealiasing technique for Doppler radar velocity.",  # Optional
+    description="Classification of radar reflectivity data using Wavelet transform.",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
     url="https://github.com/vlouf/PyREClass",  # Optional
