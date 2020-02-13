@@ -11,25 +11,35 @@ from numpy import log, floor
 
 
 def getWTClass(dbz_data, res_km, conv_scale_km=20):
-    """ Compute scan-by-scan ATWT of radar volume data and classify echoes.
+    """
+    Compute scan-by-scan ATWT of radar volume data and classify echoes.
+    Converts dBZ to rain rates using standard Z-R relationship. This is to
+    transform the normally distributed dBZ to gamma-like distribution.
 
-     Converts dBZ to rain rates using standard Z-R relationship.
-     This is to transform the normally distributed dBZ to gamma-like distribution.
-     @param \code{vol_data} 3D array containing radar data. Last dimension should be levels.
-     @param \code{res_km} resolution of the radar data in km.
-     @param \code{conv_scale} approximate scale break (in km) between convective and stratiform scales.
-     @return Sum of wavelets upto \code{conv_scale} for each scan.
-     @export
-     @seealso \code{\link{getWTSum}}"""
+    Parameters:
+    ===========
+    dbz_data: ndarray
+        3D array containing radar data. Last dimension should be levels.
+    res_km: float
+        Resolution of the radar data in km
+    conv_scale_km: float
+        Approximate scale break (in km) between convective and stratiform scales
+
+    Returns:
+    ========
+    wt_class: ndarray
+        Precipitation type classification: 1. stratiform, 2. intense/heavy 
+        convective and 3. moderate+transitional convective regions.
+    """
 
     #save the mask for missing data.
-    #data_mask <- ifelse(test = is.na(dbz_data), yes = NA, no = 0)
-    dbz_data[dbz_data==np.nan]=0
+    dbz_data[np.isnan(dbz_data)] = 0
     scale_break = getScaleBreak(res_km, conv_scale_km)
     dbz_data_t = dbz2rr(dbz_data) #transform the dbz data
     wt_sum = getWTSum(dbz_data_t, scale_break)
     wt_class = labelClasses(wt_sum, dbz_data)
-    return(wt_class)
+
+    return wt_class
 
 
 def labelClasses(wt_sum, vol_data) :
@@ -50,15 +60,15 @@ def labelClasses(wt_sum, vol_data) :
     wt_class = wt_class*-1
     wt_class = np.where((wt_class==0), np.nan, wt_class)
 
-    return(wt_class)
+    return wt_class
 
 
 def dbz2rr(dbz, ZRA=200, ZRB=1.6):
     """Uses standard values for ZRA=200 and ZRB=1.6.
     @param dbz array, vector or matrix of reflectivity in dBZ
     @return rr rain rate in \code{mm/hr}"""
-    rr = ((10.0**(dbz/10.0))/ZRA)**(1.0/ZRB)
-    return(rr)
+    rr = ((10.0 ** (dbz / 10.0)) / ZRA) ** (1.0 / ZRB)
+    return rr
 
 
 def getScaleBreak(res_km, conv_scale_km):
@@ -67,13 +77,12 @@ def getScaleBreak(res_km, conv_scale_km):
     @param res_km resolution of the image.
     @param conv_scale_km expected size of spatial variations due to convection.
     @return dyadic integer scale break in pixels. """
-    scale_break = log((conv_scale_km/res_km))/log(2)+1
-    return(round(scale_break))
+    scale_break = log((conv_scale_km / res_km)) / log(2) + 1
+    return round(scale_break)
 
 
 def getWTSum(vol_data, conv_scale):
     """returns sum of WT upto given scale.
-
     Works with both 2d scans and Volume data."""
     dims = vol_data.shape
 
@@ -93,14 +102,13 @@ def getWTSum(vol_data, conv_scale):
             #sum all the WT scales.
             wt_sum[lev, :, :] = np.sum(wt, axis=(0))
 
-
     #negative WT do not corresponds to convection in radar
     #wt_sum[wt_sum<0] = 0 #check calling function
-    return(wt_sum)
+    return wt_sum 
 
 
 def atwt2d(data2d, max_scale=-1):
-    """Computes A trous wavelet transform (ATWT)
+    r"""Computes A trous wavelet transform (ATWT)
     Computes ATWT of the 2d array up to \code{max_scale}.
     If \code{max_scale} is outside the boundaries, number of scales will be reduced.
     Data is mirrored at the boundaries.'Negative WT are removed. Not tested for non-square data.
@@ -113,12 +121,11 @@ def atwt2d(data2d, max_scale=-1):
 
     dims = data2d.shape
     max_possible_scales = getMaxScales(dims)
-    if(max_scale<0 or max_possible_scales < max_scale):
+    if(max_scale < 0 or max_possible_scales < max_scale):
         max_scale = max_possible_scales
 
     ny = dims[0]
     nx = dims[1]
-
 
     wt = np.zeros((max_scale, ny, nx))
     temp1 = np.zeros(dims)
@@ -129,7 +136,7 @@ def atwt2d(data2d, max_scale=-1):
     #start wavelet loop
     for scale in range(1, max_scale+1):
         print(scale)
-        x1 = 2**(scale-1)
+        x1 = 2 ** (scale-1)
         x2 = 2 * x1
 
         #Row-wise smoothing
@@ -192,10 +199,11 @@ def atwt2d(data2d, max_scale=-1):
 
 
 def getMaxScales(dims):
-    """Calculate the mximum possible scale of ATWT for given dimensions.
+    r"""
+    Calculate the mximum possible scale of ATWT for given dimensions.
     @param data_dim output of the \code{dim(data2d)} for given matrix or array.
     @return integer value of the maximum scale.
     """
     min_dims = min(dims)
-    max_scale = log(min_dims)/log(2)
-    return(floor(max_scale))
+    max_scale = log(min_dims) / log(2)
+    return floor(max_scale)
