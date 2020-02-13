@@ -18,10 +18,10 @@ with netCDF4.Dataset(fname, "r") as ncid:
 
 wt_class = getWTClass(data2d, res_km=2.5, conv_scale_km=20)
 
-fig, ax = pl.subplots(1, 2, figsize=(12, 5))
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
 ax = ax.ravel()
 
 ax[0].pcolormesh(data2d)
 ax[1].pcolormesh(wt_class)
 
-pl.show()
+plt.show()
