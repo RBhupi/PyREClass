@@ -1,0 +1,1 @@
+from .wtclass import getWTClass
