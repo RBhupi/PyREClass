@@ -202,7 +202,7 @@ def atwt2d(data2d, max_scale=-1):
     """
     dims = data2d.shape
     min_dims = np.min(dims)
-    max_possible_scales = floor(log(min_dims) / log(2))
+    max_possible_scales = int(floor(log(min_dims) / log(2)))
 
     if max_scale < 0 or max_possible_scales < max_scale:
         max_scale = max_possible_scales
