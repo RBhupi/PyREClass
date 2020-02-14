@@ -209,8 +209,9 @@ def atwt2d(data2d, max_scale=-1):
 
     ny = dims[0]
     nx = dims[1]
-
+    print(f'nx = {nx} and ny = {ny} and max_scale={max_possible_scales} and {max_scale}')
     wt = np.zeros((max_scale, ny, nx))
+
     temp1 = np.zeros(dims)
     temp2 = np.zeros(dims)
 
