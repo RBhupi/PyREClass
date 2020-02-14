@@ -17,11 +17,11 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="pyreclass",  # Required
-    version="0.9.9",  # Required
+    version="1.0.0",  # Required
     description="Classification of radar reflectivity data using Wavelet transform.",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
-    url="https://github.com/vlouf/PyREClass",  # Optional
+    url="https://github.com/RBhupi/PyREClass",  # Optional
     # For a list of valid classifiers, see https://pypi.org/classifiers/
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -35,7 +35,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),  # Required
     install_requires=["numpy"],  # Optional
     project_urls={  # Optional
-        "Bug Reports": "https://github.com/vlouf/PyREClass/issues",
-        "Source": "https://github.com/vlouf/PyREClass/",
+        "Bug Reports": "https://github.com/RBhupi/PyREClass/issues",
+        "Source": "https://github.com/RBhupi/PyREClass/",
     },
 )
