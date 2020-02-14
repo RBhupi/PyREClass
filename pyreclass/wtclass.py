@@ -28,9 +28,13 @@ def getWTClass(dbz_data, res_km, conv_scale_km=20):
     Returns:
     ========
     wt_class: ndarray
-        Precipitation type classification: 1. stratiform, 2. intense/heavy 
+        Precipitation type classification: 1. stratiform, 2. intense/heavy
         convective and 3. moderate+transitional convective regions.
     """
+    try:
+        dbz_data = dbz_data.filled(0)  # In case it's a masked array.
+    except Exception:
+        pass
 
     # save the mask for missing data.
     dbz_data[np.isnan(dbz_data)] = 0
@@ -53,42 +57,76 @@ def labelClasses(wt_sum, vol_data):
 
     # I first used negative numbers to annotate the categories. Then multiply it by -1.
     wt_class = np.where((wt_sum >= conv_wt_threshold) & (vol_data >= conv_dbz_threshold), -2, 0)
-    wt_class = np.where(
-        (wt_sum < conv_wt_threshold)
-        & (wt_sum >= tran_wt_threshold)
-        & (vol_data >= conv_dbz_threshold),
-        -3,
-        wt_class,
-    )
+    wt_class = np.where((wt_sum < conv_wt_threshold) & (wt_sum >= tran_wt_threshold)
+                        & (vol_data >= conv_dbz_threshold), -3, wt_class)
     wt_class = np.where((wt_class == 0) & (vol_data >= min_dbz_threshold), -1, wt_class)
 
-    wt_class = wt_class * -1
+    wt_class = -1 * wt_class
     wt_class = np.where((wt_class == 0), np.nan, wt_class)
 
     return wt_class
 
 
-def dbz2rr(dbz, ZRA=200, ZRB=1.6):
-    """Uses standard values for ZRA=200 and ZRB=1.6.
-    @param dbz array, vector or matrix of reflectivity in dBZ
-    @return rr rain rate in \code{mm/hr}"""
-    rr = ((10.0 ** (dbz / 10.0)) / ZRA) ** (1.0 / ZRB)
+def dbz2rr(dbz, acoeff=200, bcoeff=1.6):
+    """
+    Uses standard values for ZRA=200 and ZRB=1.6.
+
+    Parameters:
+    ===========
+    dbz: ndarray
+        Array, vector or matrix of reflectivity in dBZ.
+    acoeff: float
+        Z = a*R^b a coefficient.
+    bcoeff: float
+        Z = a*R^b b coefficient.
+
+    Returns:
+    ========
+    rr: ndarray
+        Rain rate in (mm/h)
+    """
+    rr = ((10.0 ** (dbz / 10.0)) / acoeff) ** (1.0 / bcoeff)
     return rr
 
 
 def getScaleBreak(res_km, conv_scale_km):
-    """#' compute scale break for convection and stratiform regions.
-    WT will be computed upto this scale and features will be designated as convection.
-    @param res_km resolution of the image.
-    @param conv_scale_km expected size of spatial variations due to convection.
-    @return dyadic integer scale break in pixels. """
+    """
+    Compute scale break for convection and stratiform regions. WT will be
+    computed upto this scale and features will be designated as convection.
+
+    Parameters:
+    ===========
+    res_km: float
+        resolution of the image.
+    conv_scale_km: float
+        expected size of spatial variations due to convection.
+
+    Returns:
+    ========
+    dyadic: int
+        integer scale break in pixels.
+    """
     scale_break = log((conv_scale_km / res_km)) / log(2) + 1
     return round(scale_break)
 
 
 def getWTSum(vol_data, conv_scale):
-    """returns sum of WT upto given scale.
-    Works with both 2d scans and Volume data."""
+    """
+    Returns sum of WT upto given scale. Works with both 2d scans and
+    volumetric data.
+
+    Parameters:
+    ===========
+    vol_data: ndarray
+        Array, vector or matrix of data.
+    conv_scale: float
+        Expected size of spatial variations due to convection.
+
+    Returns:
+    ========
+    wt_sum: ndarray
+        Precipitation type classification.
+    """
     dims = vol_data.shape
 
     # if data is 2d
@@ -113,17 +151,30 @@ def getWTSum(vol_data, conv_scale):
 
 
 def atwt2d(data2d, max_scale=-1):
-    r"""Computes A trous wavelet transform (ATWT)
-    Computes ATWT of the 2d array up to \code{max_scale}.
-    If \code{max_scale} is outside the boundaries, number of scales will be reduced.
-    Data is mirrored at the boundaries.'Negative WT are removed. Not tested for non-square data.
-    @param data2d 2d image as array or matrix.
-    @param max_scale computes wavelets up to \code{max_scale}. Leave blank for maximum possible scales.
-    @return array containing ATWT of input image with added 3rd dimention for scales.
-    @note Need to break this into smaller functions.
-    @author Bhupendra Raut and Dileep M. Puranik
-    @seealso Press et al. (1992) Numerical Recipes in C."""
+    """
+    Computes a trous wavelet transform (ATWT). Computes ATWT of the 2d array
+    up to max_scale. If max_scale is outside the boundaries, number of scales
+    will be reduced.
 
+    Data is mirrored at the boundaries. 'Negative WT are removed. Not tested
+    for non-square data.
+
+    @authors: Bhupendra Raut and Dileep M. Puranik
+    @references: Press et al. (1992) Numerical Recipes in C.
+
+    Parameters:
+    ===========
+    data2d: ndarray
+        2D image as array or matrix.
+    max_scale:
+        Computes wavelets up to max_scale. Leave blank for maximum possible
+        scales.
+
+    Returns:
+    ========
+    wt: ndarray
+        ATWT of input image with added 3rd dimention for scales.
+    """
     dims = data2d.shape
     max_possible_scales = getMaxScales(dims)
     if max_scale < 0 or max_possible_scales < max_scale:
@@ -169,15 +220,12 @@ def atwt2d(data2d, max_scale=-1):
                 left1 = data2d[j, prev1]
                 right1 = data2d[j, next1]
                 right2 = data2d[j, next2]
-                temp1[j, i] = (
-                    sf[0] * (left2 + right2)
-                    + sf[1] * (left1 + right1)
-                    + sf[2] * data2d[j, i]
-                )
+                temp1[j, i] = (sf[0] * (left2 + right2)
+                               + sf[1] * (left1 + right1)
+                               + sf[2] * data2d[j, i])
 
         # Column-wise smoothing
         for i in range(0, ny):
-
             prev2 = abs(i - x2)
             prev1 = abs(i - x1)
             next1 = i + x1
@@ -186,24 +234,20 @@ def atwt2d(data2d, max_scale=-1):
             # If these indices are outside the image use next values
             if next1 > ny - 1:
                 next1 = 2 * (ny - 1) - next1
-
             if next2 > ny - 1:
                 next2 = 2 * (ny - 1) - next2
-
             if prev1 < 0 or prev2 < 0:
                 prev1 = next1
                 prev2 = next2
-            # print ("scale "+ str(scale) + " i=" + str(i), " prev2=" +str(prev2)+ " prev1=" + str(prev1) + " next2=" + str(next2))
+
             for j in range(0, nx):
                 top2 = temp1[prev2, j]
                 top1 = temp1[prev1, j]
                 bottom1 = temp1[next1, j]
                 bottom2 = temp1[next2, j]
-                temp2[i, j] = (
-                    sf[0] * (top2 + bottom2)
-                    + sf[1] * (top1 + bottom1)
-                    + sf[2] * temp1[i, j]
-                )
+                temp2[i, j] = (sf[0] * (top2 + bottom2)
+                               + sf[1] * (top1 + bottom1)
+                               + sf[2] * temp1[i, j])
 
         wt[scale - 1, :, :] = data2d - temp2
         data2d[:] = temp2
