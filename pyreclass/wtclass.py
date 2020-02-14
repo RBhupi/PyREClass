@@ -218,7 +218,7 @@ def atwt2d(data2d, max_scale=-1):
 
     # start wavelet loop
     for scale in range(1, max_scale + 1):
-        print(scale)
+        # print(scale)
         x1 = 2 ** (scale - 1)
         x2 = 2 * x1
 
