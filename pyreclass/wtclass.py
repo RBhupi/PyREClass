@@ -37,8 +37,9 @@ def getWTClass(dbz_data, res_km, conv_scale_km=20):
     Returns:
     ========
     wt_class: ndarray
-        Precipitation type classification: 1. stratiform, 2. intense/heavy
-        convective and 3. moderate+transitional convective regions.
+        Precipitation type classification: 0. N/A 1. stratiform, 
+        2. intense/heavy convective and 3. moderate+transitional convective 
+        regions. 
     """
     try:
         dbz_data = dbz_data.filled(0)  # In case it's a masked array.
@@ -58,6 +59,7 @@ def getWTClass(dbz_data, res_km, conv_scale_km=20):
 def labelClasses(wt_sum, vol_data):
     """ 
     Labels classes using given thresholds:
+    - 0. no precipitation,
     - 1. stratiform,
     - 2. intense/heavy convective,
     - 3. moderate/transitional convective regions.
@@ -87,9 +89,9 @@ def labelClasses(wt_sum, vol_data):
     wt_class = np.where((wt_class == 0) & (vol_data >= min_dbz_threshold), -1, wt_class)
 
     wt_class = -1 * wt_class
-    wt_class = np.where((wt_class == 0), np.nan, wt_class)
+    # wt_class = np.where((wt_class == 0), np.nan, wt_class)
 
-    return wt_class
+    return wt_class.astype(np.int32)
 
 
 def reflectivity_to_rainrate(dbz, acoeff=200, bcoeff=1.6):
