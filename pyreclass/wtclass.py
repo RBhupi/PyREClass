@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Oct 22 23:12:19 2019
 @author: Bhupendra Raut
 @modifed: 02/13/2020
-@modification: Valentin Louf <valentin.louf@bom.gov.au>
 """
 import numpy as np
 from numpy import log, floor
@@ -39,7 +36,7 @@ def getWTClass(dbz_data, res_km, conv_scale_km=20):
     # save the mask for missing data.
     dbz_data[np.isnan(dbz_data)] = 0
     scale_break = getScaleBreak(res_km, conv_scale_km)
-    dbz_data_t = dbz2rr(dbz_data)  # transform the dbz data
+    dbz_data_t = reflectivity_to_rainrate(dbz_data)  # transform the dbz data
     wt_sum = getWTSum(dbz_data_t, scale_break)
     wt_class = labelClasses(wt_sum, dbz_data)
 
@@ -47,8 +44,24 @@ def getWTClass(dbz_data, res_km, conv_scale_km=20):
 
 
 def labelClasses(wt_sum, vol_data):
-    """ Lables 1. stratiform, 2. intense/heavy convective  and
-    3. moderate+transitional convective regions using given thersholds."""
+    """ 
+    Labels classes using given thresholds:
+    - 1. stratiform,
+    - 2. intense/heavy convective,
+    - 3. moderate/transitional convective regions.
+
+    Parameters:
+    ===========
+    wt_sum: ndarray    
+        Integrated wavelet transform
+    vol_data: ndarray
+        Array, vector or matrix of data
+
+    Returns:
+    ========
+    wt_class: ndarray
+        Precipitation type classification.
+    """
 
     conv_wt_threshold = 5  # WT value more than this is strong convection
     tran_wt_threshold = 2  # WT value for moderate convection
@@ -67,7 +80,7 @@ def labelClasses(wt_sum, vol_data):
     return wt_class
 
 
-def dbz2rr(dbz, acoeff=200, bcoeff=1.6):
+def reflectivity_to_rainrate(dbz, acoeff=200, bcoeff=1.6):
     """
     Uses standard values for ZRA=200 and ZRB=1.6.
 
@@ -125,7 +138,7 @@ def getWTSum(vol_data, conv_scale):
     Returns:
     ========
     wt_sum: ndarray
-        Precipitation type classification.
+        Integrated wavelet transform.
     """
     dims = vol_data.shape
 
@@ -176,7 +189,9 @@ def atwt2d(data2d, max_scale=-1):
         ATWT of input image with added 3rd dimention for scales.
     """
     dims = data2d.shape
-    max_possible_scales = getMaxScales(dims)
+    min_dims = np.min(dims)
+    max_possible_scales = floor(log(min_dims) / log(2))
+
     if max_scale < 0 or max_possible_scales < max_scale:
         max_scale = max_possible_scales
 
@@ -253,14 +268,3 @@ def atwt2d(data2d, max_scale=-1):
         data2d[:] = temp2
 
     return wt
-
-
-def getMaxScales(dims):
-    r"""
-    Calculate the mximum possible scale of ATWT for given dimensions.
-    @param data_dim output of the \code{dim(data2d)} for given matrix or array.
-    @return integer value of the maximum scale.
-    """
-    min_dims = min(dims)
-    max_scale = log(min_dims) / log(2)
-    return floor(max_scale)
