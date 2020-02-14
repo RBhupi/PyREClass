@@ -132,7 +132,7 @@ def getScaleBreak(res_km, conv_scale_km):
         integer scale break in pixels.
     """
     scale_break = log((conv_scale_km / res_km)) / log(2) + 1
-    return round(scale_break)
+    return int(round(scale_break))
 
 
 def getWTSum(vol_data, conv_scale):
@@ -208,8 +208,7 @@ def atwt2d(data2d, max_scale=-1):
         max_scale = max_possible_scales
 
     ny = dims[0]
-    nx = dims[1]
-    print(f'nx = {nx} and ny = {ny} and max_scale={max_possible_scales} and {max_scale}')
+    nx = dims[1]    
     wt = np.zeros((max_scale, ny, nx))
 
     temp1 = np.zeros(dims)
