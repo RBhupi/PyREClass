@@ -1,7 +1,19 @@
 """
+A Multiresolution Technique for the Classification of Precipitation Echoes in 
+Radar Data. 
+
 Created on Thu Oct 22 23:12:19 2019
 @author: Bhupendra Raut
 @modifed: 02/13/2020
+@references: 10.1109/TGRS.2020.2965649
+
+.. autosummary::
+    getWTClass
+    labelClasses
+    reflectivity_to_rainrate
+    getScaleBreak
+    getWTSum
+    atwt2d
 """
 import numpy as np
 from numpy import log, floor
