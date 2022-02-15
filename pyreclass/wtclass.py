@@ -18,6 +18,8 @@ Created on Thu Oct 22 23:12:19 2019
 import numpy as np
 from numpy import log, floor
 
+import sys
+
 
 def getWTClass(dbz_data, res_km, conv_scale_km=20):
     """
@@ -202,6 +204,10 @@ def atwt2d(data2d, max_scale=-1):
     wt: ndarray
         ATWT of input image with added 3rd dimention for scales.
     """
+    
+    if not isinstance(data2d, np.ndarray):
+        sys.exit("the input is not a numpy array")
+    
     dims = data2d.shape
     min_dims = np.min(dims)
     max_possible_scales = int(floor(log(min_dims) / log(2)))
