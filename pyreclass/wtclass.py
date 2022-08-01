@@ -65,6 +65,13 @@ def labelClasses(wt_sum, vol_data):
     - 1. stratiform,
     - 2. intense/heavy convective,
     - 3. moderate/transitional convective regions.
+    
+    Following hard coded values are optimised and validated using C-band radars
+    over Darwin, Australia (2.5 km grid spacing) and Solapur, India (1km grid spacing) [Raut et al. 2020]. 
+    conv_wt_threshold = 5  # WT value more than this is strong convection
+    tran_wt_threshold = 2  # WT value for moderate convection
+    min_dbz_threshold = 10  # pixels below this value are not classified. 
+    conv_dbz_threshold = 30  # pixel below this value are not convective. This works for most cases.
 
     Parameters:
     ===========
