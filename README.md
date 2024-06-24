@@ -1,3 +1,6 @@
+# Note
+This package is merged into DoE ARM Radar Toolkit (PyART) package and can be found [here](https://arm-doe.github.io/pyart/API/generated/pyart.retrieve.conv_strat_raut.html).
+
 # PyREClass
 
 Classification of radar reflectivity data using Wavelet transform.
